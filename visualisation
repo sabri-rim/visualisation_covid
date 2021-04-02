@@ -1,0 +1,190 @@
+print(dc_df.shape)
+print(positif_df.shape)
+print(guerri_df.shape)
+print(stat_df.shape)
+
+
+stat_df.head(10)
+
+
+country=['China','France','US']
+stat_df[stat_df['Country_Region'].isin(country)]
+
+
+
+stat_df.columns
+
+
+
+# Afficher les statistiques au niveau mondiale
+global_data=stat_df.copy().drop(['Country_Region','Last_Update', 'Lat', 'Long_','Active', 'Incident_Rate', 'People_Tested',
+       'People_Hospitalized', 'Mortality_Rate', 'UID', 'ISO3'],axis=1)
+global_synthese=pd.DataFrame(global_data.sum()).transpose()
+global_synthese
+
+
+
+dc_df.isnull()
+
+dc_df.isna()
+
+
+guerri_df.isnull()
+
+
+guerri_df.isna()
+
+
+positif_df.isnull()
+
+
+positif_df.isna()
+
+
+stat_df.isnull()
+
+
+stat_df.isna()
+
+
+stat_df.isnull().sum() 
+
+
+positif_df.isnull().sum() 
+
+
+guerri_df.isnull().sum() 
+
+
+dc_df.isnull().sum() 
+
+
+stat_df.dropna()
+
+
+positif_df.dropna() 
+
+
+guerri_df.dropna() 
+
+
+dc_df.dropna()
+
+
+# Visualiser les pays les plus touchés
+fig=go.FigureWidget(layout=go.Layout())
+def highlight_col(x):
+  r='background-color:red'
+  y='background-color:yellow'
+  g='background-color:green'
+  df1=pd.DataFrame('',index=x.index,columns=x.columns)
+  df1.iloc[:,4]=y
+  df1.iloc[:,5]=r
+  df1.iloc[:,6]=g
+
+  return df1
+
+def show_cases(n):
+  n=int(n)
+  return stat_df.sort_values('Confirmed',ascending=False).head(n).style.apply(highlight_col,axis=None)
+
+interact(show_cases,n='10')
+
+ipywLayout=widgets.Layout(border='solid 2px green')
+ipywLayout.display='none'
+widgets.VBox([fig],layout=ipywLayout)
+
+
+stat_class_df= stat_df.sort_values('Confirmed',ascending=False)
+stat_class_df.columns
+
+
+stat_class_df.columns
+px.bar(
+   stat_class_df.head(10),
+   x= 'Country_Region',
+   y= 'Confirmed',
+  title='Les 10 pays ayant le plus de cas positifs du Covid19',
+  color_discrete_sequence=['pink'],
+  height=500,
+  width=800
+)
+
+
+stat_class_df.columns
+px.bar(
+   stat_class_df.head(10),
+   x= 'Country_Region',
+   y= 'Deaths',
+  title='Les 10 pays ayant deces liées au Covid19',
+  color_discrete_sequence=['red'],
+  height=500,
+  width=800
+)
+
+
+
+stat_class_df.columns
+px.bar(
+   stat_class_df.head(10),
+   x= 'Country_Region',
+   y= 'Recovered',
+  title='Les 10 pays ont enregistré le plus de retablissement Covid19',
+  color_discrete_sequence=['green'],
+  height=500,
+  width=800
+)
+
+
+index_with_nan =dc_df.index[dc_df.isnull().any(axis=1)]
+index_with_nan.shape
+
+
+dc_df.drop(index_with_nan,0, inplace=True)
+dc_df.shape
+
+
+index_with_nan = positif_df.index[positif_df.isnull().any(axis=1)]
+index_with_nan.shape
+
+
+positif_df.drop(index_with_nan,0, inplace=True)
+positif_df.shape
+
+
+index_with_nan = stat_df.index[stat_df.isnull().any(axis=1)]
+index_with_nan.shape
+stat_df.drop(index_with_nan,0, inplace=True)
+stat_df.shape
+
+
+index_with_nan = guerri_df.index[guerri_df.isnull().any(axis=1)]
+index_with_nan.shape
+guerri_df.drop(index_with_nan,0, inplace=True)
+guerri_df.shape
+
+
+# Visualiser les données en map
+map=folium.Map(location=[46.2276, 2.2137],zoom_start=3, max_zoom=50,min_zoom=0)
+map
+
+
+for i in range(0,len(positif_df)):
+  folium.Circle(
+      location=[positif_df.iloc[i]['Lat'],positif_df.iloc[i]['Long']],
+      fill=True,
+      radius=(int((np.log(positif_df.iloc[i,-1]+1.00001)))+0.2)*50000,
+      color='red',
+      fill_color='black',
+      tooltip = "<div style='margin: 0; background-color: black; color: white;'>"+
+                    "<h4 style='text-align:center;font-weight: bold'>"+positif_df.iloc[i]['Country/Region'] + "</h4>"
+                    "<hr style='margin:10px;color: white;'>"+
+                    "<ul style='color: white;;list-style-type:circle;align-item:left;padding-left:20px;padding-right:20px'>"+
+                        "<li>Confirme: "+str(positif_df.iloc[i,-1])+"</li>"+
+                        "<li>Deces:   "+str(dc_df.iloc[i,-1])+"</li>"+
+                        "<li>Taux de mortalite: "+ str(np.round(dc_df.iloc[i,-1]/(positif_df.iloc[i,-1]+1.00001)*100,2))+ "</li>"+
+                    "</ul></div>",
+        ).add_to(map)
+map
+
+
